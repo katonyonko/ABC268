@@ -11,14 +11,20 @@ ab
 a
 aa
 aaa
-2
-abef
-abe
+5
+d
+a
+dcfg
+axc
+dcfb
 """
 
 sys.stdin = io.StringIO(_INPUT)
 case_no=int(input())
 for __ in range(case_no):
+  mode=0
+  import sys
+  sys.setrecursionlimit(10**6)
   #BFS
   from collections import deque
   def bfs(G,s):
@@ -35,32 +41,39 @@ for __ in range(case_no):
           dq.append(y)
     return D
 
+  memo={}
+  def rec(i):
+    if i in memo: return memo[i]
+    tmp=0
+    for v in G[i]:
+      if v!=parent[i]: tmp+=rec(v)+1
+    memo[i]=tmp
+    return memo[i]
+
   mod=998244353
   N=int(input())
-  memo=[0]*(N+1)
-  def rec(G,s):
-    if memo[s]!=0: return memo[s]
-    res=1
-    for v in G[s]:
-      if depth[v]>depth[s]: res+=rec(G,v)
-    memo[s]=res
-    return res
-  S=[input() for _ in range(N)]
-  d={S[i]:i+1 for i in range(N)}
-  d['']=0
+  S=[""]+[input() for _ in range(N)]
+  T=sorted([(S[i],i) for i in range(N+1)])
+  if mode==1: print(T)
   G=[[] for _ in range(N+1)]
-  SS=sorted(S,key=lambda x:len(x))
-  used=set([''])
+  parent=[-1]*(N+1)
+  now=0
+  for i in range(1,N+1):
+    s,id=T[i]
+    l=0
+    if mode==1:
+      if s=='dcfb': print(T[now][0],l)
+    for j in range(min(len(S[now]),len(s))):
+      if S[now][j]==s[j]: l+=1
+      else: break
+    while len(S[now])>l: now=parent[now]
+    G[now].append(id)
+    G[id].append(now)
+    parent[id]=now
+    now=id
+  D=bfs(G,0)
+  den=pow(2,mod-2,mod)
+  if mode==1: print(G)
   for i in range(N):
-    tmp=len(SS[i])
-    while SS[i][:tmp] not in used:
-      tmp-=1
-    used.add(SS[i])
-    G[d[SS[i]]].append(d[SS[i][:tmp]])
-    G[d[SS[i][:tmp]]].append(d[SS[i]])
-  depth=bfs(G,0)
-  rec(G,0)
-  x=pow(2,mod-2,mod)
-  for i in range(N):
-    a,b=depth[d[S[i]]],memo[d[S[i]]]-1
-    print((N+a-b)*x%mod)
+    if mode==1: print((N+D[i+1]-rec(i+1))*den%mod,D[i+1]-1,rec(i+1))
+    else: print((N+D[i+1]-rec(i+1))*den%mod)
